@@ -1,0 +1,106 @@
+name: Terraform Manual Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose Terraform operation to run'
+        required: true
+        type: choice
+        options:
+          - apply
+          - destroy
+        default: apply
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  TF_WORKING_DIR: terraform
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.inputs.action == 'apply' }}
+
+    environment: dev
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.6
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var="environment=dev" \
+            -out=tfplan \
+            -no-color
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply \
+            -auto-approve \
+            tfplan
+
+      - name: Show Terraform Outputs
+        run: terraform output
+
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.inputs.action == 'destroy' }}
+
+    environment: production
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.6
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Destroy Plan
+        run: |
+          terraform plan \
+            -var="environment=dev" \
+            -destroy \
+            -no-color
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy \
+            -var="environment=dev" \
+            -auto-approve \
+            -no-color
