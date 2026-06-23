@@ -41,15 +41,12 @@ jobs:
           terraform_version: 1.15.6
 
       - name: Terraform Init
-        id: init
         run: terraform init
 
       - name: Terraform Validate
-        id: validate
         run: terraform validate
 
       - name: Terraform Plan
-        id: plan
         run: |
           terraform plan \
             -var="environment=dev" \
@@ -57,7 +54,6 @@ jobs:
             -no-color
 
       - name: Terraform Apply
-        id: apply
         run: |
           terraform apply \
             -auto-approve \
@@ -88,7 +84,6 @@ jobs:
           terraform_version: 1.15.6
 
       - name: Terraform Init
-        id: init
         run: terraform init
 
       - name: Terraform Destroy Plan
