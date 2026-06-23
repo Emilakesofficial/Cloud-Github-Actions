@@ -9,8 +9,6 @@ remote state management, environment-based deployments, and safety controls.
 ##  Table of Contents
 
 - [What This Project Does](#what-this-project-does)
-- [Architecture Overview](#architecture-overview)
-- [Repository Structure](#repository-structure)
 - [Remote Backend](#remote-backend)
 - [GitHub Actions Workflows](#github-actions-workflows)
   - [CI Workflow](#ci-workflow)
@@ -63,68 +61,6 @@ Manual destroy runs ONLY via workflow_dispatch with environment approval.
 | **No hardcoded credentials** | All secrets via GitHub Secrets |
 | **State locking** | S3 native lock file prevents concurrent runs |
 
----
-
-## Architecture Overview
-┌─────────────────────────────────────────────────────────────┐
-│ GitHub Repository │
-│ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐ │
-│ │Pull Request │ │Push to main │ │  workflow_dispatch │ │
-│ │ to main │ │ │ │(apply / destroy) │ │
-│ └──────┬───────┘ └──────┬───────┘ └────────┬─────────┘ │
-│ │ │ │ │
-│ ▼ ▼ ▼ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐ │
-│ │terraform- │ │    terraform- │ │  terraform-manual- │ │
-│ │ci.yml │     │      cd.yml │   │     operations.yml │ │
-│ │             │                 │ │                  │ │     
-│ │fmt          │  │init          │ │     apply job OR │ │
-│ │init         │   validate      │ │      destroy job │ │
-│ │validate     │  │plan -out     │ │   (user selects) │ │
-│ │plan         │  │apply  │ │    │ │
-│ │NO apply    │  │                  │approval required │ │
-│ └──────────────┘ └──────┬───────┘ └────────┬─────────┘ │
-└─────────────────────────────────────────────────────────────┘
-│ │
-▼ ▼
-┌──────────────────────────────────────────────┐
-│ AWS Account │
-│ │
-│ ┌─────────────────────────────────────────┐ │
-│ │ S3: tf-state-github-actions-demo │ │
-│ │ (Remote Backend — State Storage) │ │
-│ │ terraform/state/terraform.tfstate │ │
-│ │ terraform/state/terraform.tfstate.lock │ │
-│ └─────────────────────────────────────────┘ │
-│ │
-│ ┌─────────────────────────────────────────┐ │
-│ │ S3: terraform-managed-demo-adekunle │ │
-│ │ (Managed Infrastructure Resource) │ │
-│ └─────────────────────────────────────────┘ │
-└──────────────────────────────────────────────┘
-
-
----
-
-## Repository Structure
-.
-├── .github/
-│ └── workflows/
-│ ├── terraform-ci.yml # CI — runs on Pull Request
-│ ├── terraform-cd.yml # CD — runs on push to main
-│ └── terraform-manual-operations.yml # Manual apply or destroy
-│
-├── terraform/
-│ ├── backend.tf # S3 remote backend configuration
-│ ├── providers.tf # AWS provider and Terraform version
-│ ├── variables.tf # All input variables
-│ ├── main.tf # AWS resources (S3 demo bucket)
-│ └── outputs.tf # Output values after apply
-│
-└── README.md
-
----
 
 ## Remote Backend
 
