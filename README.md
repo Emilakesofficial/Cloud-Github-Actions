@@ -405,6 +405,8 @@ GitHub Repository
     → Reviewer goes to Actions → Reviews pending deployments
     → Reviewer approves or rejects
     → Only after approval does destroy execute
+
+
 How to Destroy Infrastructure Safely
 Destroying infrastructure is a serious operation.
 This project has multiple safety layers to prevent accidental destruction.
@@ -454,4 +456,4 @@ Resources managed by Terraform (will be destroyed):
 └── aws_s3_bucket_public_access_block.demo_bucket_public_access_block
 
 Resources NOT managed by Terraform (will NOT be destroyed):
-├ It must be deleted manually if needed.
+It must be deleted manually if needed.
