@@ -75,18 +75,21 @@ Without Remote Backend:           With S3 Remote Backend:
 ──────────────────────────────    ──────────────────────────────────
 Run 1: Runner starts              Run 1: Runner starts
        Terraform creates           │      terraform init
-       terraform.tfstate ──────  │      Downloads state from S3
+       terraform.tfstate           │      Downloads state from S3
        Runner is DESTROYED         │      Creates/updates resources
        State file is LOST          │      Uploads new state to S3
                                    │      Runner is destroyed 
-Run 2: Runner starts               │
-       No state file found         Run 2: Runner starts
+
+Run 2: Runner starts           
+       No state file found          Run 2: Runner starts
        Terraform thinks            │      terraform init
-       nothing exists ──────     │      Downloads state from S3 
+       nothing exists              │      Downloads state from S3 
        Tries to create             │      Knows what already exists
        duplicate resources         │      Only changes what changed 
-        DISASTER                 │      Uploads new state to S3
-                                    SAFE AND CONSISTENT
+        DISASTER                   │      Uploads new state to S3
+                                          SAFE AND CONSISTENT
+
+                                          
 Benefits of This Backend Setup
 - State persists between GitHub Actions runs
 - State is consistent across all team members
