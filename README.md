@@ -1,4 +1,4 @@
-# 🚀 GitHub Actions CI/CD with Terraform on AWS
+#  GitHub Actions CI/CD with Terraform on AWS
 
 A complete Infrastructure as Code (IaC) pipeline using **Terraform** and 
 **GitHub Actions** to automate the provisioning of AWS resources with 
@@ -6,7 +6,7 @@ remote state management, environment-based deployments, and safety controls.
 
 ---
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [What This Project Does](#what-this-project-does)
 - [Architecture Overview](#architecture-overview)
@@ -70,20 +70,20 @@ Manual destroy runs ONLY via workflow_dispatch with environment approval.
 │ GitHub Repository │
 │ │
 │ ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐ │
-│ │Pull Request │ │Push to main │ │workflow_dispatch │ │
+│ │Pull Request │ │Push to main │ │  workflow_dispatch │ │
 │ │ to main │ │ │ │(apply / destroy) │ │
 │ └──────┬───────┘ └──────┬───────┘ └────────┬─────────┘ │
 │ │ │ │ │
 │ ▼ ▼ ▼ │
 │ ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐ │
-│ │terraform- │ │terraform- │ │terraform-manual- │ │
-│ │ci.yml │ │cd.yml │ │operations.yml │ │
-│ │ │ │ │ │ │ │
-│ │fmt ✅ │ │init ✅ │ │apply job OR │ │
-│ │init ✅ │ │validate ✅ │ │destroy job │ │
-│ │validate ✅ │ │plan -out ✅ │ │(user selects) │ │
-│ │plan ✅ │ │apply ✅ │ │ │ │
-│ │NO apply ❌ │ │ │ │approval required │ │
+│ │terraform- │ │    terraform- │ │  terraform-manual- │ │
+│ │ci.yml │     │      cd.yml │   │     operations.yml │ │
+│ │             │                 │ │                  │ │     
+│ │fmt          │  │init          │ │     apply job OR │ │
+│ │init         │   validate      │ │      destroy job │ │
+│ │validate     │  │plan -out     │ │   (user selects) │ │
+│ │plan         │  │apply  │ │    │ │
+│ │NO apply    │  │                  │approval required │ │
 │ └──────────────┘ └──────┬───────┘ └────────┬─────────┘ │
 └─────────────────────────────────────────────────────────────┘
 │ │
@@ -139,40 +139,36 @@ Without Remote Backend:           With S3 Remote Backend:
 ──────────────────────────────    ──────────────────────────────────
 Run 1: Runner starts              Run 1: Runner starts
        Terraform creates           │      terraform init
-       terraform.tfstate ──────❌  │      Downloads state from S3
+       terraform.tfstate ──────  │      Downloads state from S3
        Runner is DESTROYED         │      Creates/updates resources
        State file is LOST          │      Uploads new state to S3
-                                   │      Runner is destroyed ✅
+                                   │      Runner is destroyed 
 Run 2: Runner starts               │
        No state file found         Run 2: Runner starts
        Terraform thinks            │      terraform init
-       nothing exists ──────❌     │      Downloads state from S3 ✅
+       nothing exists ──────     │      Downloads state from S3 
        Tries to create             │      Knows what already exists
-       duplicate resources         │      Only changes what changed ✅
-       💥 DISASTER                 │      Uploads new state to S3
-                                   ✅ SAFE AND CONSISTENT
+       duplicate resources         │      Only changes what changed 
+        DISASTER                 │      Uploads new state to S3
+                                    SAFE AND CONSISTENT
 Benefits of This Backend Setup
-text
-
-✅ State persists between GitHub Actions runs
-✅ State is consistent across all team members
-✅ State locking prevents concurrent apply conflicts
-✅ State encryption protects sensitive infrastructure data
-✅ S3 versioning allows state recovery if corrupted
-✅ No risk of losing state when runner terminates
+- State persists between GitHub Actions runs
+- State is consistent across all team members
+- State locking prevents concurrent apply conflicts
+- State encryption protects sensitive infrastructure data
+- S3 versioning allows state recovery if corrupted
+- No risk of losing state when runner terminates
+  
 GitHub Actions Workflows
 CI Workflow
 File: .github/workflows/terraform-ci.yml
-
 Purpose: Validate Terraform code quality on every Pull Request.
 This gives the team confidence that code is correct BEFORE it merges.
 
 Triggers:
-
-✅ pull_request → main     (automatic)
-✅ workflow_dispatch        (manual)
+- pull_request → main     (automatic)
+- workflow_dispatch        (manual)
 What It Does:
-
 Step 1: Checkout Repository
         └── Downloads code onto the runner
 
@@ -197,21 +193,16 @@ Step 6: Terraform Plan (terraform plan)
         └── NO -out flag — plan is NOT saved for apply
         └── CI NEVER applies infrastructure
 
-Rule: ❌ CI will never run terraform apply
+Rule:  CI will never run terraform apply
 
 CD Workflow
 File: .github/workflows/terraform-cd.yml
-
 Purpose: Automatically deploy infrastructure when code merges to main.
-
 Triggers:
-
-✅ push → main             (automatic on merge)
-✅ workflow_dispatch        (manual)
-GitHub Environment: dev
-
+- push → main             (automatic on merge)
+- workflow_dispatch        (manual) 
+- GitHub Environment: dev
 What It Does:
-
 Step 1: Checkout Repository
 
 Step 2: Setup Terraform
@@ -241,9 +232,9 @@ plan runs → sees state A            plan runs → sees state A
 time passes...                      
 someone changes infra manually      apply reads the SAVED plan
                                     executes exactly what was planned
-apply runs → sees state B           no drift possible ✅
-applies unexpected changes ❌
-Rule: ✅ CD only applies after merge to main
+apply runs → sees state B           no drift possible 
+applies unexpected changes 
+Rule:  CD only applies after merge to main
 
 Manual Operations Workflow
 File: .github/workflows/terraform-manual-operations.yml
@@ -253,11 +244,10 @@ This is the ONLY workflow that can destroy infrastructure.
 
 Triggers:
 
-✅ workflow_dispatch ONLY
-❌ Never on push
-❌ Never on pull_request
+- workflow_dispatch ONLY
+- Never on push
+- Never on pull_request
 User Input:
-
 When triggering manually, user must choose:
 ┌─────────────────────────────────┐
 │ Choose Terraform operation:     │
@@ -266,7 +256,6 @@ When triggering manually, user must choose:
 │ ○ destroy                       │
 └─────────────────────────────────┘
 Job Structure:
-
 workflow_dispatch (action = apply OR destroy)
          │
          ├──── if action == "apply"  ──▶  terraform-apply job
@@ -282,18 +271,17 @@ workflow_dispatch (action = apply OR destroy)
                                            ├── plan -destroy     ← see blast radius
                                            └── destroy -auto-approve
 Safety Controls:
-
-Safety Layer	How It Works
-Manual trigger only	workflow_dispatch — never runs automatically
-User must choose - Must explicitly select "destroy" from dropdown
-Environment approval - production environment requires reviewer approval
-Destroy plan first - Shows exactly what will be deleted before destroy runs
-Separate jobs - Apply and destroy are completely separate jobs
+Safety Layer - How It Works
+- Manual trigger only	workflow_dispatch — never runs automatically
+- User must choose - Must explicitly select "destroy" from dropdown
+- Environment approval - production environment requires reviewer approval
+- Destroy plan first shows exactly what will be deleted before destroy runs
+- Separate jobs - Apply and destroy are completely separate jobs
 Environments Used:
 
 Job	Environment	Protection
-Apply - dev	Optional reviewers
-Destroy - production - Required reviewer approval
+Apply - dev	-> Optional reviewers
+Destroy - production -> Required reviewer approval
 
 GitHub Secrets
 What Secrets Are Required
@@ -303,43 +291,38 @@ Secret Name	Description	Example Value
 AWS_ACCESS_KEY_ID - AWS IAM user access key ID	AKIAIOSFODNN7EXAMPLE
 AWS_SECRET_ACCESS_KEY - AWS IAM user secret access key	wJalrXUtnFEMI/K7MDENG/...
 AWS_REGION - AWS region for deployment	us-east-1
+
 How Secrets Are Used
 Secrets are injected as environment variables at the workflow level:
-
 YAML
-
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
-The AWS Terraform provider and AWS CLI automatically read these
-standard environment variable names for authentication.
+The AWS Terraform provider and AWS CLI automatically read these standard environment variable names for authentication.
 
-Security Properties
-
-✅ Secrets are encrypted at rest in GitHub
-✅ Secret values are NEVER printed in logs (masked as ***)
-✅ Secrets are not accessible to forked repositories
-✅ No credentials are hardcoded in any workflow or Terraform file
-✅ Secrets are only available to workflows in this repository
+Security Properties:
+- Secrets are encrypted at rest in GitHub
+- Secret values are NEVER printed in logs (masked as ***)
+- Secrets are not accessible to forked repositories
+- No credentials are hardcoded in any workflow or Terraform file
+- Secrets are only available to workflows in this repository
 GitHub Environments
 Environment	Used By	Protection
-dev	CD workflow, Manual apply	Optional reviewers
-production	Manual destroy ONLY	✅ Required reviewer approval
-Setting Up Environments
-text
+dev	CD workflow, Manual apply	Optional reviewers,
+production -> Manual destroy ONLY, Required reviewer approval.
 
+Setting Up Environments
 GitHub Repository
 └── Settings
     └── Environments
         ├── dev
         │   └── (optional) Add required reviewers
         └── production
-            └── ✅ Required reviewers → add your GitHub username
+            └──  Required reviewers → add your GitHub username
+            
 How to Run Each Workflow
 CI Workflow — Automatic
-text
-
 1. Create a feature branch
    git checkout -b feature/your-change
 
@@ -350,68 +333,60 @@ text
 
 4. Open a Pull Request → main on GitHub
    → CI workflow triggers automatically
-   → Check the PR for the plan summary comment
    → All steps must pass before merging
+   
 CI Workflow — Manual
-text
-
 GitHub Repository
 └── Actions
     └── Terraform CI
         └── Run workflow
             └── Branch: main (or any branch)
-                └── Run workflow ✅
+                └── Run workflow 
+                
 CD Workflow — Automatic
-text
-
 1. Merge your Pull Request to main
    → CD workflow triggers automatically
    → Terraform plan runs
    → Terraform apply runs
    → Infrastructure is deployed to AWS
-   → Check Actions tab for deployment summary
-CD Workflow — Manual
-text
 
+CD Workflow — Manual
 GitHub Repository
 └── Actions
     └── Terraform CD
         └── Run workflow
             └── Branch: main
-                └── Run workflow ✅
+                └── Run workflow 
 Manual Apply
-text
-
 GitHub Repository
 └── Actions
     └── Terraform Manual Operations
         └── Run workflow
             ├── Branch: main
-            ├── Action: apply    ← select from dropdown
-            └── Run workflow ✅
-Manual Destroy
-text
-
-GitHub Repository
-└── Actions
-    └── Terraform Manual Operations
-        └── Run workflow
-            ├── Branch: main
-            ├── Action: destroy  ← select from dropdown
-            └── Run workflow ✅
+            ├── Action: apply    # select from dropdown
+            └── Run workflow 
             
-⚠️  PAUSE: Workflow waits for approval
+Manual Destroy
+GitHub Repository
+└── Actions
+    └── Terraform Manual Operations
+        └── Run workflow
+            ├── Branch: main
+            ├── Action: destroy  # select from dropdown
+            └── Run workflow 
+            
+  NOTE: Workflow waits for approval
     → GitHub sends notification to required reviewer
     → Reviewer goes to Actions → Reviews pending deployments
     → Reviewer approves or rejects
     → Only after approval does destroy execute
+
+    
 How to Destroy Infrastructure Safely
 Destroying infrastructure is a serious operation.
 This project has multiple safety layers to prevent accidental destruction.
 
 Step-by-Step Safe Destroy Process
-text
-
 Step 1: Confirm what exists
 ────────────────────────────────────────────────────
 Go to AWS Console → S3 → verify the demo bucket exists
@@ -444,9 +419,8 @@ Step 5: Verify destruction
 ────────────────────────────────────────────────────
 aws s3 ls | grep terraform-managed-demo
 → Should return nothing (bucket deleted)
-What Destroy Will Remove
-text
 
+What Destroy Will Remove
 Resources managed by Terraform (will be destroyed):
 ├── aws_s3_bucket.demo_bucket
 ├── aws_s3_bucket_versioning.demo_bucket_versioning
