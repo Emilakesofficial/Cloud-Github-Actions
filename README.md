@@ -71,23 +71,24 @@ This project uses an **AWS S3 backend** for Terraform remote state storage.
 Why Remote Backend Is Required in GitHub Actions
 GitHub Actions runners are temporary, ephemeral virtual machines.
 
-Without Remote Backend:           With S3 Remote Backend:
-──────────────────────────────    ──────────────────────────────────
-Run 1: Runner starts              Run 1: Runner starts
-       Terraform creates           │      terraform init
-       terraform.tfstate           │      Downloads state from S3
-       Runner is DESTROYED         │      Creates/updates resources
-       State file is LOST          │      Uploads new state to S3
-                                   │      Runner is destroyed 
+Without Remote Backend:                                                    With S3 Remote Backend:
+
+Run 1: Runner starts                                                       Run 1: Runner starts
+       Terraform creates                                              │      terraform init
+       terraform.tfstate                                              │      Downloads state from S3
+       Runner is DESTROYED                                            │      Creates/updates resources
+       State file is LOST                                             │      Uploads new state to S3
+                                                                      │      Runner is destroyed 
 
 Run 2: Runner starts           
-       No state file found          Run 2: Runner starts
-       Terraform thinks            │      terraform init
-       nothing exists              │      Downloads state from S3 
-       Tries to create             │      Knows what already exists
-       duplicate resources         │      Only changes what changed 
-        DISASTER                   │      Uploads new state to S3
-                                          SAFE AND CONSISTENT
+       No state file found                                                  Run 2: Runner starts
+       Terraform thinks                                               │           terraform init
+       nothing exists                                                 │      Downloads state from S3 
+       Tries to create                                                │      Knows what already exists
+       duplicate resources                                            │      Only changes what changed 
+        DISASTER                                                      │      Uploads new state to S3
+                                                                               SAFE AND CONSISTENT
+
 
                                           
 Benefits of This Backend Setup
@@ -108,6 +109,7 @@ Triggers:
 - pull_request → main     (automatic)
 - workflow_dispatch        (manual)
 What It Does:
+
 Step 1: Checkout Repository
         └── Downloads code onto the runner
 
@@ -138,6 +140,7 @@ CD Workflow
 File: .github/workflows/terraform-cd.yml
 Purpose: Automatically deploy infrastructure when code merges to main.
 Triggers:
+
 - push → main             (automatic on merge)
 - workflow_dispatch        (manual) 
 - GitHub Environment: dev
@@ -162,6 +165,7 @@ Step 6: Terraform Apply tfplan        ← APPLIES SAVED PLAN ONLY
 
 Step 7: Show Terraform Outputs
         └── Prints created resource details to logs
+
 
 
 Without -out=tfplan:                With -out=tfplan:
@@ -195,6 +199,7 @@ When triggering manually, user must choose:
 │ ○ destroy                       │
 └─────────────────────────────────┘
 Job Structure:
+
 workflow_dispatch (action = apply OR destroy)
          │
          ├──── if action == "apply"  ──▶  terraform-apply job
@@ -211,6 +216,7 @@ workflow_dispatch (action = apply OR destroy)
                                            └── destroy -auto-approve
 Safety Controls:
 Safety Layer - How It Works
+
 - Manual trigger only	workflow_dispatch — never runs automatically
 - User must choose - Must explicitly select "destroy" from dropdown
 - Environment approval - production environment requires reviewer approval
@@ -315,6 +321,7 @@ GitHub Repository
             └── Run workflow 
             
   NOTE: Workflow waits for approval
+  
     → GitHub sends notification to required reviewer
     → Reviewer goes to Actions → Reviews pending deployments
     → Reviewer approves or rejects
