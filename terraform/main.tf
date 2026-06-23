@@ -11,10 +11,10 @@ locals {
 # Demo d3 bucket
 
 resource "aws_s3_bucket" "demo_bucket" {
-  bucket = "${var.demo_bucket_name} - ${var.environment}"
+  bucket = "${var.demo_bucket_name}-${var.environment}"
 
   tags = merge(local.common_tags, {
-    Name = "${var.demo_bucket_name} - ${var.environment}"
+    Name = "${var.demo_bucket_name}-${var.environment}"
   })
 }
 
